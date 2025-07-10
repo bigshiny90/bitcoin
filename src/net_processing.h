@@ -28,6 +28,8 @@ static const uint32_t DEFAULT_MAX_ORPHAN_TRANSACTIONS{100};
 /** Default number of non-mempool transactions to keep around for block reconstruction. Includes
     orphan, replaced, and rejected transactions. */
 static const uint32_t DEFAULT_BLOCK_RECONSTRUCTION_EXTRA_TXN{100};
+static constexpr size_t BLOCK_RECONSTRUCTION_EXTRA_TXN_PER_TXN_SIZE_LIMIT{100000};
+static const size_t DEFAULT_BLOCK_RECONSTRUCTION_EXTRA_TXN_SIZE{std::numeric_limits<size_t>::max()};
 static const bool DEFAULT_PEERBLOOMFILTERS = false;
 static const bool DEFAULT_PEERBLOCKFILTERS = false;
 /** Maximum number of outstanding CMPCTBLOCK requests for the same block. */
@@ -70,6 +72,7 @@ public:
         //! Number of non-mempool transactions to keep around for block reconstruction. Includes
         //! orphan, replaced, and rejected transactions.
         uint32_t max_extra_txs{DEFAULT_BLOCK_RECONSTRUCTION_EXTRA_TXN};
+        size_t max_extra_txs_size{DEFAULT_BLOCK_RECONSTRUCTION_EXTRA_TXN_SIZE};
         //! Whether all P2P messages are captured to disk
         bool capture_messages{false};
         //! Whether or not the internal RNG behaves deterministically (this is
