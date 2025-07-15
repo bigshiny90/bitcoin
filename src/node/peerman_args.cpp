@@ -20,8 +20,8 @@ void ApplyArgsManOptions(const ArgsManager& argsman, PeerManager::Options& optio
         options.max_extra_txs = uint32_t((std::clamp<int64_t>(*value, 0, std::numeric_limits<uint32_t>::max())));
     }
 
-    if (auto value{argsman.GetArg("-blockreconstructionextratxnsize")}) {
-        options.max_extra_txs_size = static_cast<size_t>(1000000 * std::stod(*value));
+    if (auto value{argsman.GetIntArg("-blockreconstructionextratxnsize")}) {
+        options.max_extra_txs_size = 1000000 * std::clamp<int64_t>(*value, 0, std::numeric_limits<size_t>::max() / 1000000);
     }
 
     if (auto value{argsman.GetBoolArg("-capturemessages")}) options.capture_messages = *value;
