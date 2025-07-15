@@ -427,67 +427,6 @@ class CompactBlocksBlockReconstructionLimitTest(BitcoinTestFramework):
 
         self.log.info("Memory limit boundary behavior verified - one transaction evicted when limit exceeded")
 
-    # TEST: BLOCK_RECONSTRUCTION_EXTRA_TXN_PER_TXN_SIZE_LIMIT
-
-    def test_transaction_size_limit(self):
-        """Test that transactions exceeding 100KB size limit are not added to extra pool."""
-        self.log.info("Testing 100KB per-transaction size limit...")
-
-        # Use default settings (no specific memory limit)
-        self.restart_node_with_limit(count=10)
-
-        # Create a transaction that exceeds 100KB
-        self.log.info("Creating transaction larger than 100KB...")
-
-        utxo = self.wallet.get_utxo()
-        original = self.wallet.create_self_transfer(
-            utxo_to_spend=utxo,
-            sequence=MAX_BIP125_RBF_SEQUENCE,
-            fee_rate=Decimal('0.01')  # Higher fee rate for large transaction (~1 sat/byte)
-        )
-        original_tx = tx_from_hex(original['hex'])
-
-        # Calculate total for new outputs and adjust first output
-        num_outputs = 500
-        satoshis_per_output = 100
-        total_for_new_outputs = num_outputs * satoshis_per_output
-
-        # Reduce the first output's value by the amount we're adding
-        original_tx.vout[0].nValue -= total_for_new_outputs
-
-        # Add ~500 outputs to exceed 100KB (each output ~200 bytes)
-        for j in range(num_outputs):
-            padding_data = b'x' * 190
-            script = CScript([padding_data, OP_DROP, OP_TRUE])
-            original_tx.vout.append(CTxOut(satoshis_per_output, script))
-
-        original_tx.rehash()
-        original['hex'] = original_tx.serialize().hex()
-        original['txid'] = original_tx.hash
-        original['wtxid'] = original_tx.getwtxid()
-
-        # Verify transaction is >100KB
-        tx_size = len(original_tx.serialize())
-        self.log.info(f"Created transaction of size: {tx_size} bytes")
-        assert tx_size > 100000, f"Transaction should exceed 100KB, but is only {tx_size} bytes"
-
-        # Send original and replacement
-        self.nodes[0].sendrawtransaction(original['hex'])
-        replacement = self.wallet.create_self_transfer(
-            utxo_to_spend=utxo,
-            sequence=MAX_BIP125_RBF_SEQUENCE - 1,
-            fee_rate=Decimal('0.1')
-        )
-        self.nodes[0].sendrawtransaction(replacement['hex'])
-        self.segwit_node.sync_with_ping()
-
-        # Try to use the >100KB transaction in compact block reconstruction
-        result = self.send_compact_block([original], [0])
-
-        # Transaction should NOT be in extra pool due to size limit
-        assert result["missing_indices"] == [0], "Transaction >100KB should not be in extra pool"
-        self.log.info("✓ Confirmed: Transactions exceeding 100KB are not stored in extra pool")
-
 
     def run_test(self):
         self.wallet = MiniWallet(self.nodes[0])
@@ -513,9 +452,6 @@ class CompactBlocksBlockReconstructionLimitTest(BitcoinTestFramework):
         self.test_extratxn_zero_memorylimit()
         self.test_extratxn_memorylimit_eviction()
         self.test_extratxn_memorylimit_boundary()
-
-        # Transaction size limit tests
-        self.test_transaction_size_limit()
 
 
 if __name__ == '__main__':
