@@ -124,6 +124,7 @@ class CompactBlocksBlockReconstructionLimitTest(BitcoinTestFramework):
         self.segwit_node.send_and_ping(msg_sendcmpct(announce=True, version=2))
 
     def create_extra_pool_transactions(self, num_txs, large_tx=False):
+        """Create pairs of original and replacement RBF transactions."""
         original_txs = []
         replacement_txs = []
 
@@ -196,6 +197,7 @@ class CompactBlocksBlockReconstructionLimitTest(BitcoinTestFramework):
         return original_txs, replacement_txs
 
     def populate_extra_pool(self, num_txs, large_tx=False):
+        """Populate the extra transaction pool by sending RBF transaction pairs."""
         node = self.nodes[0]
 
         original_txs, replacement_txs = self.create_extra_pool_transactions(num_txs, large_tx)
@@ -214,6 +216,7 @@ class CompactBlocksBlockReconstructionLimitTest(BitcoinTestFramework):
         return original_txs, replacement_txs
 
     def send_compact_block(self, transactions, indices):
+        """Send a compact block and check which transactions are requested for reconstruction."""
         node = self.nodes[0]
 
         # Create block with specified transactions
