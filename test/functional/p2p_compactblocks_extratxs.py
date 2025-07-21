@@ -10,11 +10,11 @@ from test_framework.blocktools import (
     COINBASE_MATURITY,
     NORMAL_GBT_REQUEST_PARAMS,
     create_block,
+    add_witness_commitment
 )
 from test_framework.messages import (
     CTxOut,
     HeaderAndShortIDs,
-    MAX_BIP125_RBF_SEQUENCE,
     MSG_BLOCK,
     msg_cmpctblock,
     msg_sendcmpct,
@@ -29,6 +29,12 @@ from test_framework.script import (
     CScript,
     OP_DROP,
     OP_TRUE,
+    OP_RETURN,
+    OP_CHECKSIG,
+    OP_1,
+)
+from test_framework.script_util import (
+    keys_to_multisig_script,
 )
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
@@ -91,7 +97,7 @@ class CompactBlocksBlockReconstructionLimitTest(BitcoinTestFramework):
         self.setup_clean_chain = True
         self.num_nodes = 1
         self.extra_args = [[
-            "-acceptnonstdtxn=1",
+            "-acceptnonstdtxn=0",
             "-debug=net",
         ]]
         self.utxos = []
@@ -104,11 +110,11 @@ class CompactBlocksBlockReconstructionLimitTest(BitcoinTestFramework):
 
     def make_utxos(self):
         """Generate blocks to create UTXOs for the wallet."""
-        self.generate(self.wallet, COINBASE_MATURITY + 400)
+        self.generate(self.wallet, COINBASE_MATURITY + 800)
 
     def restart_node_with_limit(self, memory_mb=None, count=None):
         """Restart node with specific memory and/or count limits."""
-        extra_args = ["-acceptnonstdtxn=1", "-debug=net"]
+        extra_args = ["-acceptnonstdtxn=0", "-debug=net"]
 
         if memory_mb is not None:
             self.log.info(f"Setting memory limit: {memory_mb} MB")
@@ -123,97 +129,62 @@ class CompactBlocksBlockReconstructionLimitTest(BitcoinTestFramework):
         self.segwit_node = self.nodes[0].add_p2p_connection(TestP2PConn())
         self.segwit_node.send_and_ping(msg_sendcmpct(announce=True, version=2))
 
-    def create_extra_pool_transactions(self, num_txs, large_tx=False):
-        """Create pairs of original and replacement RBF transactions."""
-        original_txs = []
-        replacement_txs = []
+    def create_policy_rejected_tx(self, rejection_type="dust", large_tx=False):
+        """Create a transaction that will be rejected for policy reasons but added to extra pool."""
+
+        if rejection_type == "dust":
+            tx_info = self.wallet.create_self_transfer()
+            dust_amount = 100
+            dust_script = CScript([OP_TRUE])
+            tx_info['tx'].vout.append(CTxOut(dust_amount, dust_script))
+            tx_info['tx'].vout[0].nValue -= dust_amount
+
+        elif rejection_type == "low_fee":
+            tx_info = self.wallet.create_self_transfer(fee_rate=Decimal('0.00000100'))
+
+        elif rejection_type == "op_return_size":
+            tx_info = self.wallet.create_self_transfer()
+            data = b'x' * 85
+            tx_info['tx'].vout.append(CTxOut(0, CScript([OP_RETURN, data])))
+
+        elif rejection_type == "nonstandard_script":
+            tx_info = self.wallet.create_self_transfer()
+            pubkeys = []
+            for _ in range(4):
+                pubkeys.append(bytes([0x02] + [0x00] * 32))
+            multisig_script = keys_to_multisig_script(pubkeys, k=4)
+            tx_info['tx'].vout.append(CTxOut(10000, multisig_script))
+            tx_info['tx'].vout[0].nValue -= 10000
+
+        else:
+            raise ValueError(f"Unknown rejection type: {rejection_type}")
+
+        # Add padding outputs to make transaction ~20KB
+        if large_tx:
+            for i in range(100):
+                padding_data = b'x' * 190
+                script = CScript([padding_data, OP_DROP, OP_TRUE])
+                tx_info['tx'].vout.append(CTxOut(100, script))
+                tx_info['tx'].vout[0].nValue -= 100
+
+        tx_info['tx'].rehash()
+        tx_info['hex'] = tx_info['tx'].serialize().hex()
+        return tx_info
+
+    def populate_extra_pool(self, num_txs, rejection_type="dust", large_tx=False):
+        """Populate the extra transaction pool using policy-rejected transactions."""
+        node = self.nodes[0]
+        rejected_txs = []
 
         for i in range(num_txs):
-            utxo = self.wallet.get_utxo()
+            tx_info = self.create_policy_rejected_tx(rejection_type, large_tx=large_tx)
+            tx_obj = tx_from_hex(tx_info['hex'])
+            self.segwit_node.send_message(msg_tx(tx_obj))
+            rejected_txs.append(tx_info)
 
-            if large_tx:
-                # Create larger transactions by adding many outputs
-                # Target ~20KB per transaction
-
-                # from: rbf_extra_pool_explanation.md
-                # Create original transaction with low fee and extra outputs
-                original = self.wallet.create_self_transfer(
-                    utxo_to_spend=utxo,
-                    sequence=MAX_BIP125_RBF_SEQUENCE,  # 0xfffffffd - RBF enabled
-                    fee_rate=Decimal('0.001')
-                )
-                original_tx = tx_from_hex(original['hex'])
-
-                num_outputs = 100
-                for j in range(num_outputs):
-                    padding_data = b'x' * 190
-                    script = CScript([padding_data, OP_DROP, OP_TRUE])
-                    original_tx.vout.append(CTxOut(100, script))
-
-                original_tx.rehash()
-                original['hex'] = original_tx.serialize().hex()
-                original['txid'] = original_tx.hash
-                original['wtxid'] = original_tx.getwtxid()
-                original_txs.append(original)
-
-                # Create rbf transaction, higher fee with same outputs
-                replacement = self.wallet.create_self_transfer(
-                    utxo_to_spend=utxo,
-                    sequence=MAX_BIP125_RBF_SEQUENCE - 1,  # Still RBF enabled
-                    fee_rate=Decimal('0.01')
-                )
-                replacement_tx = tx_from_hex(replacement['hex'])
-
-                # Add same outputs to replacement
-                for j in range(100):
-                    padding_data = b'x' * 190
-                    script = CScript([padding_data, OP_DROP, OP_TRUE])
-                    replacement_tx.vout.append(CTxOut(100, script))
-
-                replacement_tx.rehash()
-                replacement['hex'] = replacement_tx.serialize().hex()
-                replacement['txid'] = replacement_tx.hash
-                replacement['wtxid'] = replacement_tx.getwtxid()
-                replacement_txs.append(replacement)
-            else:
-                # Create normal sized transactions
-                # from: rbf_extra_pool_explanation.md
-                # Create original transaction with low fee
-                original = self.wallet.create_self_transfer(
-                    utxo_to_spend=utxo,
-                    sequence=MAX_BIP125_RBF_SEQUENCE,  # 0xfffffffd - RBF enabled
-                    fee_rate=Decimal('0.001')
-                )
-                original_txs.append(original)
-
-                # Create rbf transaction, higher fee
-                replacement = self.wallet.create_self_transfer(
-                    utxo_to_spend=utxo,
-                    sequence=MAX_BIP125_RBF_SEQUENCE - 1,  # Still RBF enabled
-                    fee_rate=Decimal('0.01')
-                )
-                replacement_txs.append(replacement)
-
-        return original_txs, replacement_txs
-
-    def populate_extra_pool(self, num_txs, large_tx=False):
-        """Populate the extra transaction pool by sending RBF transaction pairs."""
-        node = self.nodes[0]
-
-        original_txs, replacement_txs = self.create_extra_pool_transactions(num_txs, large_tx)
-
-        for i, original in enumerate(original_txs):
-            tx_obj = tx_from_hex(original['hex'])
-            self.segwit_node.send_message(msg_tx(tx_obj))  # Don't wait
-
-        for i, replacement in enumerate(replacement_txs):
-            tx_obj = tx_from_hex(replacement['hex'])
-            self.segwit_node.send_message(msg_tx(tx_obj))  # Don't wait
-
-        # Single sync at the end for all transactions
         self.segwit_node.sync_with_ping()
 
-        return original_txs, replacement_txs
+        return rejected_txs
 
     def send_compact_block(self, transactions, indices):
         """Send a compact block and check which transactions are requested for reconstruction."""
@@ -225,7 +196,9 @@ class CompactBlocksBlockReconstructionLimitTest(BitcoinTestFramework):
         for i in indices:
             tx_obj = tx_from_hex(transactions[i]['hex'])
             block.vtx.append(tx_obj)
-        block.hashMerkleRoot = block.calc_merkle_root()
+
+        # Add witness commitment for blocks with witness transactions
+        add_witness_commitment(block)
         block.solve()
 
         # Send as compact block
@@ -255,6 +228,54 @@ class CompactBlocksBlockReconstructionLimitTest(BitcoinTestFramework):
         }
 
 
+    # TEST: policy-rejected transactions
+
+    def test_policy_rejection_types(self):
+        """Test that each policy rejection type adds transactions to extra pool."""
+        self.log.info("Testing policy rejection types for extra pool...")
+
+        self.restart_node(0, extra_args=[
+            "-acceptnonstdtxn=0",
+            "-debug=net",
+            "-datacarriersize=83",
+            "-blockreconstructionextratxn=100"
+        ])
+        self.segwit_node = self.nodes[0].add_p2p_connection(TestP2PConn())
+        self.segwit_node.send_and_ping(msg_sendcmpct(announce=True, version=2))
+
+        rejection_types = ["dust", "low_fee", "op_return_size", "nonstandard_script"]
+        rejected_txs = []
+
+        for rejection_type in rejection_types:
+            self.log.info(f"Testing {rejection_type} rejection...")
+            tx_info = self.create_policy_rejected_tx(rejection_type)
+
+            tx_obj = tx_from_hex(tx_info['hex'])
+            self.segwit_node.send_message(msg_tx(tx_obj))
+
+            rejected_txs.append({
+                'type': rejection_type,
+                'tx_info': tx_info,
+                'txid': tx_info['tx'].hash,
+                'wtxid': tx_info['tx'].getwtxid()
+            })
+
+        self.segwit_node.sync_with_ping()
+
+        mempool = self.nodes[0].getrawmempool()
+        for rejected in rejected_txs:
+            assert_equal(rejected['txid'] in mempool, False)
+            self.log.info(f"✓ {rejected['type']} transaction rejected from mempool")
+
+        indices = list(range(len(rejected_txs)))
+        tx_list = [r['tx_info'] for r in rejected_txs]
+
+        result = self.send_compact_block(tx_list, indices)
+
+        assert_equal(result["missing_indices"], [])
+        self.log.info("✓ All rejected transactions are available in extra pool")
+
+
     # TEST: blockreconstructionextratxn
 
     def test_extratxnpool_disabled(self):
@@ -263,35 +284,35 @@ class CompactBlocksBlockReconstructionLimitTest(BitcoinTestFramework):
 
         self.restart_node_with_limit(count=0)
         buffersize = 5
-        original_txs, _ = self.populate_extra_pool(buffersize)
+        rejected_txs = self.populate_extra_pool(buffersize)
 
         indices = list(range(buffersize))
-        result = self.send_compact_block(original_txs, indices)
-        assert result["missing_indices"] == indices, f"All transactions should be requested with disabled extra txn pool, but only {result['missing_indices']} are missing"
+        result = self.send_compact_block(rejected_txs, indices)
+        assert_equal(result["missing_indices"], indices)
         self.log.info(f"✓ All {buffersize} transactions are missing (extra txn pool disabled)")
 
     def test_extratxnpool_capacity(self):
-        """Test extra transaction pool holds exactly 50 transactions."""
+        """Test extra transaction pool capacity transactions."""
         self.log.info("Testing extra transaction pool capacity (50 transactions)...")
 
-        buffersize = 50  # size
+        buffersize = 50
         self.restart_node_with_limit(count=buffersize)
 
-        original_txs, _ = self.populate_extra_pool(buffersize)
+        rejected_txs = self.populate_extra_pool(buffersize)
 
         indices = list(range(buffersize))
-        result = self.send_compact_block(original_txs, indices)
+        result = self.send_compact_block(rejected_txs, indices)
 
-        assert result["missing_indices"] == [], f"Expected all original transactions to be in extra txn pool, but {result['missing_indices']} are missing"
-        self.log.info("✓ All original transactions are in the extra txn pool")
+        assert_equal(result["missing_indices"], [])
+        self.log.info("✓ All rejected transactions are in the extra txn pool")
 
         # Test that adding a 51st transaction causes eviction
-        self.log.info("Adding 51st transaction to test eviction...")
-        new_txs, _ = self.populate_extra_pool(1)
+        self.log.info("Adding transaction to test eviction...")
+        new_txs = self.populate_extra_pool(1)
 
         # Check original transactions again - first one should be evicted
-        result2 = self.send_compact_block(original_txs, indices)
-        assert result2["missing_indices"] == [0], f"Expected transaction 0 to be evicted, but got {result2['missing_indices']}"
+        result2 = self.send_compact_block(rejected_txs, indices)
+        assert_equal(result2["missing_indices"], [0])
         self.log.info("✓ Transaction 0 was evicted as expected")
 
     def test_single_extratxnpool_capacity(self):
@@ -299,46 +320,109 @@ class CompactBlocksBlockReconstructionLimitTest(BitcoinTestFramework):
         self.log.info("Testing single capacity extra transaction pool...")
 
         self.restart_node_with_limit(count=1)
-        tx_count = 5  # number of transactions to test
+        tx_count = 5
 
-        original_txs, _ = self.populate_extra_pool(tx_count)
+        rejected_txs = self.populate_extra_pool(tx_count)
 
         indices = list(range(tx_count))
-        result = self.send_compact_block(original_txs, indices)
+        result = self.send_compact_block(rejected_txs, indices)
 
         expected_missing = list(range(4))
-        assert result["missing_indices"] == expected_missing, f"Expected transactions 0-3 to be evicted, but got {result['missing_indices']}"
+        assert_equal(result["missing_indices"], expected_missing)
+
+    def test_extratxn_large_capacity(self):
+        """Test extra transaction pool with very large count parameter."""
+        self.log.info("Testing with count=400 to ensure large buffers work correctly...")
+
+        buffersize = 400
+        self.restart_node_with_limit(count=buffersize)
+
+        rejected_txs = self.populate_extra_pool(buffersize)
+
+        indices = list(range(buffersize))
+        result = self.send_compact_block(rejected_txs, indices)
+
+        assert_equal(result["missing_indices"], [])
+        self.log.info("✓ All rejected transactions are in the extra txn pool")
+
+        # Test that adding a transaction causes eviction
+        self.log.info("Adding another transaction to test eviction...")
+        new_txs = self.populate_extra_pool(1)
+
+        # Check original transactions again - first one should be evicted
+        result2 = self.send_compact_block(rejected_txs, indices)
+        assert_equal(result2["missing_indices"], [0])
+        self.log.info("✓ Transaction 0 was evicted as expected")
 
     def test_extratxn_buffer_wraparound(self):
         """Test that adding transactions to a full buffer evicts oldest slots."""
         self.log.info("Testing extratxn buffer wraparound - fill buffer then add more...")
 
-        buffersize = 20  # buffer size, total txns size
+        buffersize = 20
 
-        # number of new transactions to add
-        # over MAX_BLOCKS_IN_TRANSIT_PER_PEER (16)?
         new_tx_count = 17
         self.restart_node_with_limit(count=buffersize)
 
-        # Step 1: Fill the buffer with tx pairs (original + replacement)
-        original_txs, _ = self.populate_extra_pool(buffersize)
+        # Step 1: Fill the buffer with rejected transactions
+        rejected_txs = self.populate_extra_pool(buffersize)
 
-        # Verify all original transactions are in the extra pool
+        # Verify all rejected transactions are in the extra pool
         indices = list(range(buffersize))
-        result = self.send_compact_block(original_txs, indices)
-        assert result["missing_indices"] == [], f"Expected all original transactions to be in extra pool, but {result['missing_indices']} are missing"
-        self.log.info("✓ All original transactions are in the extra pool")
+        result = self.send_compact_block(rejected_txs, indices)
+        assert_equal(result["missing_indices"], [])
+        self.log.info("✓ All rejected transactions are in the extra pool")
 
-        # Step 2: Add more transaction pairs
-        self.log.info(f"Step 2: Adding {new_tx_count} more transaction pairs (should wrap and evict slots 0-{new_tx_count-1})")
-        new_txs, _ = self.populate_extra_pool(new_tx_count)
+        # Step 2: Add more rejected transactions
+        self.log.info(f"Step 2: Adding {new_tx_count} more rejected transactions (should wrap and evict slots 0-{new_tx_count-1})")
+        new_txs = self.populate_extra_pool(new_tx_count)
 
-        result2 = self.send_compact_block(original_txs, indices)
+        result2 = self.send_compact_block(rejected_txs, indices)
 
         # Verify wraparound worked correctly - first new_tx_count should be evicted
-        expected_missing = list(range(new_tx_count))  # First 16 should be evicted
-        assert result2['missing_indices'] == expected_missing, f"Expected indices {expected_missing} to be evicted, but got {result2['missing_indices']}"
+        expected_missing = list(range(new_tx_count))
+        assert_equal(result2['missing_indices'], expected_missing)
         self.log.info(f"✓ Wraparound worked correctly! Transactions {expected_missing} were evicted as expected")
+
+    def test_extratxn_minimal_capacity_eviction(self):
+        """Test frequent eviction with minimal capacity."""
+        self.log.info("Testing minimal capacity eviction with count=2...")
+
+        self.restart_node_with_limit(count=2)
+
+        # Add 10 rejected transactions to stress eviction
+        num_txs = 10
+        rejected_txs = self.populate_extra_pool(num_txs)
+
+        # Only the last 2 should remain
+        # Try to reconstruct with all 10
+        indices = list(range(num_txs))
+        result = self.send_compact_block(rejected_txs, indices)
+
+        # First 8 should be missing (evicted)
+        expected_missing = list(range(8))
+        assert_equal(result["missing_indices"], expected_missing)
+
+    def test_extratxn_invalid_parameters(self):
+        """Test handling of invalid blockreconstructionextratxn values."""
+        self.log.info("Testing invalid parameter values...")
+
+        # Test negative value - should be clamped to 0 (disabled)
+        self.log.info("Testing negative value (-1)...")
+        self.restart_node_with_limit(count=-1)
+
+        # Add a transaction and verify pool is disabled
+        rejected_txs = self.populate_extra_pool(1)
+        result = self.send_compact_block(rejected_txs, [0])
+        assert_equal(result["missing_indices"], [0])
+
+        # Test extremely large value
+        self.log.info("Testing large value (100000)...")
+        self.restart_node_with_limit(count=100000)  # Very large but reasonable
+
+        # Add some transactions - should work but be clamped
+        rejected_txs = self.populate_extra_pool(10)
+        result = self.send_compact_block(rejected_txs, list(range(10)))
+        assert_equal(result["missing_indices"], [])
 
 
      # TEST: blockreconstructionextratxnsize
@@ -348,8 +432,8 @@ class CompactBlocksBlockReconstructionLimitTest(BitcoinTestFramework):
         self.log.info("Testing extra transaction pool zero memory limit prevents extra txn pool...")
         self.restart_node_with_limit(memory_mb=0)
 
-        original_txs, replacement_txs = self.populate_extra_pool(1)
-        result = self.send_compact_block(original_txs, [0])
+        rejected_txs = self.populate_extra_pool(1)
+        result = self.send_compact_block(rejected_txs, [0])
 
         # Should fail - no memory for extra pool
         assert result["getblocktxn"] is not None, "Node should try to request when zero memory"
@@ -359,7 +443,7 @@ class CompactBlocksBlockReconstructionLimitTest(BitcoinTestFramework):
         """Test extra transaction pool memory limit eviction behavior."""
         self.log.info("Testing extra transaction pool memory limit eviction behavior...")
 
-        buffersize = 60  # Need enough large transactions to exceed 1MB
+        buffersize = 60
 
         # First, test with 1MB limit - should fail
         self.log.info(f"Step 1: Testing with 1MB limit for {buffersize} large transactions")
@@ -368,10 +452,10 @@ class CompactBlocksBlockReconstructionLimitTest(BitcoinTestFramework):
         # Create 60 large transactions (~20KB each = ~1.2MB total)
         # This exceeds the 1MB limit
         self.log.info(f"Creating {buffersize} large transactions (~20KB each, ~1.2MB total)")
-        original_txs, _ = self.populate_extra_pool(buffersize, large_tx=True)
+        rejected_txs = self.populate_extra_pool(buffersize, large_tx=True)
 
         indices = list(range(buffersize))
-        result_small = self.send_compact_block(original_txs, indices)
+        result_small = self.send_compact_block(rejected_txs, indices)
 
         # Should have evictions - can't fit 1.2MB in 1MB limit
         assert len(result_small["missing_indices"]) > 0, "1MB limit should cause evictions for 1.2MB of transactions"
@@ -382,9 +466,9 @@ class CompactBlocksBlockReconstructionLimitTest(BitcoinTestFramework):
         self.log.info(f"Step 2: Testing with 2MB limit for same {buffersize} large transactions")
         self.restart_node_with_limit(memory_mb=2, count=buffersize)
 
-        original_txs, _ = self.populate_extra_pool(buffersize, large_tx=True)
+        rejected_txs = self.populate_extra_pool(buffersize, large_tx=True)
 
-        result_large = self.send_compact_block(original_txs, indices)
+        result_large = self.send_compact_block(rejected_txs, indices)
 
         # Should have NO evictions with 2MB limit
         assert result_large["missing_indices"] == [], f"2MB limit should store all transactions"
@@ -394,34 +478,34 @@ class CompactBlocksBlockReconstructionLimitTest(BitcoinTestFramework):
         """Test extra transaction pool at exact memory limit boundary."""
         self.log.info("Testing extra transaction pool exact memory limit boundary...")
 
-        limit_mb = 1  # Minimum allowed
+        limit_mb = 1
         self.restart_node_with_limit(memory_mb=limit_mb)
 
         test_count = 100
-        original_txs, _ = self.populate_extra_pool(test_count, large_tx=True)
+        rejected_txs = self.populate_extra_pool(test_count, large_tx=True)
 
         indices = list(range(test_count))
-        result = self.send_compact_block(original_txs, indices)
+        result = self.send_compact_block(rejected_txs, indices)
 
-         # Find the boundary - how many fit vs how many were evicted
+        # Find the boundary - how many fit vs how many were evicted
         num_evicted = len(result["missing_indices"])
         num_fit = test_count - num_evicted
 
         # Now restart and add exactly the number that fit
         self.restart_node_with_limit(memory_mb=limit_mb)
-        original_txs, _ = self.populate_extra_pool(num_fit, large_tx=True)
+        rejected_txs = self.populate_extra_pool(num_fit, large_tx=True)
 
         # Verify all fit
         indices = list(range(num_fit))
-        result = self.send_compact_block(original_txs, indices)
+        result = self.send_compact_block(rejected_txs, indices)
         assert result["missing_indices"] == [], f"Expected all {num_fit} transactions to fit at boundary"
 
         # Add one more transaction - should evict exactly one
         self.log.info("Adding one more transaction at the boundary...")
-        new_txs, _ = self.populate_extra_pool(1, large_tx=True)
+        new_txs = self.populate_extra_pool(1, large_tx=True)
 
         # Check original transactions again
-        result2 = self.send_compact_block(original_txs, indices)
+        result2 = self.send_compact_block(rejected_txs, indices)
         assert len(result2["missing_indices"]) == 1, f"Expected exactly 1 eviction at boundary"
         assert result2["missing_indices"] == [0], f"Expected oldest transaction (0) to be evicted"
 
@@ -440,10 +524,16 @@ class CompactBlocksBlockReconstructionLimitTest(BitcoinTestFramework):
         # Ensure segwit is active
         assert softfork_active(self.nodes[0], "segwit")
 
+        # Test policy rejection types first
+        self.test_policy_rejection_types()
+
         # Extra Txn capacity tests
         self.test_extratxnpool_disabled()
         self.test_extratxnpool_capacity()
         self.test_single_extratxnpool_capacity()
+        self.test_extratxn_large_capacity()
+        self.test_extratxn_minimal_capacity_eviction()
+        self.test_extratxn_invalid_parameters()
 
         # Extra Txn wraparound tests
         self.test_extratxn_buffer_wraparound()
