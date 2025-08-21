@@ -1,0 +1,40 @@
+/* Bitcoin Core Dark Theme */
+
+/* Color Definitions (QSS doesn't support CSS variables, these are for reference) */
+/* Red: #FF8080 */
+/* Green: #45DEB5 */
+/* Yellow: #FFFF80 */
+/* Orange: #F7931A */
+/* Blue: #89AAFF */
+
+/* Graph Colors with Alpha (for MempoolStats) - 250/255 alpha = FA in hex */
+/* Graph-Orange: #F7931AFA */  /* RGBA(247, 147, 26, 250) */
+/* Graph-Green: #45DEB5FA */   /* RGBA(69, 222, 181, 250) */
+/* Graph-Blue: #89AAFFFA */    /* RGBA(137, 170, 255, 250) */
+
+/* Label message types */
+QLabel[messageType="warning"] {
+    color: #FF8080;  /* theme-red */
+}
+
+QLabel[messageType="success"] {
+    color: #45DEB5;  /* theme-green */
+}
+
+/* Line edit validation states */
+QLineEdit[hasError="true"] {
+    color: #FF8080;  /* theme-red */
+}
+
+/* QValidatedLineEdit validation states */
+QValidatedLineEdit[validationState="invalid"] {
+    border: 3px solid #FF8080;  /* theme-red, replaces STYLE_INVALID */
+}
+
+QValidatedLineEdit[validationState="warning"] {
+    border: 3px solid #FFFF80;  /* theme-yellow, replaces STYLE_INCORRECT */
+}
+
+QValidatedLineEdit[validationState="valid"] {
+    /* Default border, no special styling */
+}

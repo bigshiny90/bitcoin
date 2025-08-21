@@ -19,6 +19,7 @@
 #include <qt/pairingpage.h>
 #include <qt/peertablesortproxy.h>
 #include <qt/platformstyle.h>
+#include <qt/thememanager.h>
 #ifdef ENABLE_WALLET
 #include <qt/walletmodel.h>
 #endif // ENABLE_WALLET
@@ -1005,23 +1006,8 @@ void RPCConsole::clear(bool keep_prompt)
                     platformStyle->SingleColorImage(ICON_MAPPING[i].source).scaled(QSize(consoleFontSize*2, consoleFontSize*2), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
     }
 
-    // Set default style sheet
-#ifdef Q_OS_MACOS
-    QFontInfo fixedFontInfo(GUIUtil::fixedPitchFont(/*use_embedded_font=*/true));
-#else
-    QFontInfo fixedFontInfo(GUIUtil::fixedPitchFont());
-#endif
-    ui->messagesWidget->document()->setDefaultStyleSheet(
-        QString(
-                "table { }"
-                "td.time { color: #808080; font-size: %2; padding-top: 3px; } "
-                "td.message { font-family: %1; font-size: %2; white-space:pre-wrap; } "
-                "td.cmd-request { color: #006060; } "
-                "td.cmd-error { color: red; } "
-                ".secwarning { color: red; }"
-                "b { color: #006060; } "
-            ).arg(fixedFontInfo.family(), QString("%1pt").arg(consoleFontSize))
-        );
+    // Set console stylesheet
+    updateConsoleStyleSheet();
 
     static const QString welcome_message =
         /*: RPC console welcome message.
@@ -1055,6 +1041,60 @@ void RPCConsole::keyPressEvent(QKeyEvent *event)
     }
 }
 
+void RPCConsole::updateConsoleStyleSheet()
+{
+    // Get theme colors for console
+    const ThemeManager& tm = ThemeManager::instance();
+    QColor cmdColor = tm.m_current_theme_colors->green;
+    QColor errorColor = tm.m_current_theme_colors->red;
+
+#ifdef Q_OS_MACOS
+    QFontInfo fixedFontInfo(GUIUtil::fixedPitchFont(/*use_embedded_font=*/true));
+#else
+    QFontInfo fixedFontInfo(GUIUtil::fixedPitchFont());
+#endif
+    ui->messagesWidget->document()->setDefaultStyleSheet(
+        QString(
+                "table { }"
+                "td.time { color: #808080; font-size: %2; padding-top: 3px; } "
+                "td.message { font-family: %1; font-size: %2; white-space:pre-wrap; } "
+                "td.cmd-request { color: %3; } "
+                "td.cmd-error { color: %4; } "
+                ".secwarning { color: %4; }"
+                "b { color: %3; } "
+            ).arg(fixedFontInfo.family(), QString("%1pt").arg(consoleFontSize), cmdColor.name(), errorColor.name())
+        );
+
+#ifdef Q_OS_MACOS
+    // On macOS, updating the stylesheet doesn't affect existing HTML content
+    // So we need to manually update the HTML similar to setFontSize()
+    QString str = ui->messagesWidget->toHtml();
+
+    // Get opposite theme colors to replace
+    bool isDark = tm.isDarkMode();
+    const ThemeManager::ThemeColors* oppositeColors = isDark ? &ThemeManager::LIGHT_THEME_COLORS : &ThemeManager::DARK_THEME_COLORS;
+    QColor oppositeGreen = oppositeColors->green;
+    QColor oppositeRed = oppositeColors->red;
+
+    // Replace opposite theme colors with current theme colors
+    if (oppositeGreen.isValid() && oppositeGreen != cmdColor) {
+        str.replace(QString("color:%1").arg(oppositeGreen.name()),
+                   QString("color:%1").arg(cmdColor.name()));
+    }
+    if (oppositeRed.isValid() && oppositeRed != errorColor) {
+        str.replace(QString("color:%1").arg(oppositeRed.name()),
+                   QString("color:%1").arg(errorColor.name()));
+    }
+
+    QScrollBar* scrollbar = ui->messagesWidget->verticalScrollBar();
+    int oldScrollValue = scrollbar->value();
+
+    // Set the updated HTML back
+    ui->messagesWidget->setHtml(str);
+    scrollbar->setValue(oldScrollValue);
+#endif
+}
+
 void RPCConsole::changeEvent(QEvent* e)
 {
     if (e->type() == QEvent::PaletteChange) {
@@ -1062,6 +1102,8 @@ void RPCConsole::changeEvent(QEvent* e)
         ui->fontBiggerButton->setIcon(platformStyle->SingleColorIcon(QStringLiteral(":/icons/fontbigger")));
         ui->fontSmallerButton->setIcon(platformStyle->SingleColorIcon(QStringLiteral(":/icons/fontsmaller")));
         ui->promptIcon->setIcon(platformStyle->SingleColorIcon(QStringLiteral(":/icons/prompticon")));
+        ui->openDebugLogfileButton->setIcon(platformStyle->SingleColorIcon(QStringLiteral(":/icons/export")));
+        ui->hidePeersDetailButton->setIcon(platformStyle->SingleColorIcon(QStringLiteral(":/icons/remove")));
 
         for (int i = 0; ICON_MAPPING[i].url; ++i) {
             ui->messagesWidget->document()->addResource(
@@ -1073,6 +1115,9 @@ void RPCConsole::changeEvent(QEvent* e)
         if (clientModel && clientModel->getPeerTableModel()) {
             clientModel->getPeerTableModel()->updatePalette();
         }
+
+        // Update console stylesheet with new theme colors
+        updateConsoleStyleSheet();
     }
 
     QWidget::changeEvent(e);

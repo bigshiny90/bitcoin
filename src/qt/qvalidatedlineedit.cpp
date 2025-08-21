@@ -7,6 +7,7 @@
 #include <qt/bitcoinaddressvalidator.h>
 #include <qt/guiconstants.h>
 #include <qt/guiutil.h>
+#include <qt/thememanager.h>
 
 #include <QColor>
 #include <QCoreApplication>
@@ -47,14 +48,14 @@ void QValidatedLineEdit::setValid(bool _valid, bool with_warning, const std::vec
     {
         m_has_warning = with_warning;
         if (with_warning) {
-            setStyleSheet("QValidatedLineEdit { " STYLE_INCORRECT "}");
+            setProperty("validationState", "warning");
         } else {
-            setStyleSheet("");
+            setProperty("validationState", "valid");
         }
     }
     else
     {
-        setStyleSheet("QValidatedLineEdit { " STYLE_INVALID "}");
+        setProperty("validationState", "invalid");
         if (!error_locations.empty()) {
             const QColor normal_text_colour = palette().color(foregroundRole());
             const QColor bg_colour = palette().color(backgroundRole());
@@ -69,7 +70,7 @@ void QValidatedLineEdit::setValid(bool _valid, bool with_warning, const std::vec
                     error_colour = dark_mode ? Qt::yellow : Qt::darkYellow;
                 }
             } else {
-                error_colour = dark_mode ? QColor(255, 159, 159) : Qt::red;
+                error_colour = ThemeManager::instance().m_current_theme_colors->red;
             }
 
             QTextCharFormat format;

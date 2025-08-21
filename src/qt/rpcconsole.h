@@ -204,6 +204,9 @@ private:
 
     void updateWindowTitle();
 
+    /** Update console stylesheet with theme colors */
+    void updateConsoleStyleSheet();
+
 private Q_SLOTS:
     void updateAlerts(const QString& warnings);
 };

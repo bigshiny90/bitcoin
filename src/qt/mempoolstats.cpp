@@ -7,6 +7,7 @@
 
 #include <qt/clientmodel.h>
 #include <qt/guiutil.h>
+#include <qt/thememanager.h>
 #include <stats/stats.h>
 
 #include <math.h>
@@ -31,18 +32,6 @@ static const int GRAPH_PADDING_TOP = 10;
 static const int GRAPH_PADDING_TOP_LABEL = 150;
 static const int GRAPH_PADDING_BOTTOM = 50;
 static const int LABEL_HEIGHT = 15;
-
-static const ThemeColors LIGHT_THEME_COLORS = {
-    .orange = QColor(216, 92, 1, 250),
-    .green = QColor(0, 125, 50, 250),
-    .blue = QColor(2, 61, 204, 250),
-};
-
-static const ThemeColors DARK_THEME_COLORS = {
-    .orange = QColor(247, 147, 26, 250),
-    .green = QColor(69, 222, 181, 250),
-    .blue = QColor(137, 170, 255, 250),
-};
 
 void ClickableTextItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
@@ -80,8 +69,6 @@ ui(new Ui::MempoolStats)
     ui->graphicsView->setScene(scene);
     ui->graphicsView->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
 
-    updateThemeColors();
-
     if (clientModel)
         drawChart();
 }
@@ -98,6 +85,10 @@ void MempoolStats::drawChart()
 {
     if (!(isVisible() && clientModel))
         return;
+
+    // Get current graph colors from ThemeManager
+    const ThemeManager::GraphColors* graphColors = ThemeManager::instance().m_current_graph_colors;
+    if (!graphColors) return;
 
     if (!titleItem)
     {
@@ -159,9 +150,9 @@ void MempoolStats::drawChart()
     static const QString checkbox_style_base = QStringLiteral("background-color:transparent;");
 
     // Set checkbox colors based on theme, using HexRgb to intentionally omit alpha channel
-    cbShowNumTxns->setStyleSheet(cbShowNumTxns->isChecked() ? (checkbox_style_base + "color:" + m_theme_colors->orange.name(QColor::HexRgb) + ";") : checkbox_style_base);
-    cbShowMinFeerate->setStyleSheet(cbShowMinFeerate->isChecked() ? (checkbox_style_base + "color:" + m_theme_colors->green.name(QColor::HexRgb) + ";") : checkbox_style_base);
-    cbShowMemUsage->setStyleSheet(cbShowMemUsage->isChecked() ? (checkbox_style_base + "color:" + m_theme_colors->blue.name(QColor::HexRgb) + ";") : checkbox_style_base);
+    cbShowNumTxns->setStyleSheet(cbShowNumTxns->isChecked() ? (checkbox_style_base + "color:" + graphColors->orange.name(QColor::HexRgb) + ";") : checkbox_style_base);
+    cbShowMinFeerate->setStyleSheet(cbShowMinFeerate->isChecked() ? (checkbox_style_base + "color:" + graphColors->green.name(QColor::HexRgb) + ";") : checkbox_style_base);
+    cbShowMemUsage->setStyleSheet(cbShowMemUsage->isChecked() ? (checkbox_style_base + "color:" + graphColors->blue.name(QColor::HexRgb) + ";") : checkbox_style_base);
 
     last10MinLabel->setEnabled((timeFilter == TEN_MINS));
     lastHourLabel->setEnabled((timeFilter == ONE_HOUR));
@@ -368,15 +359,15 @@ void MempoolStats::drawChart()
 
     // draw semi-transparent gradient for the dynamic memory size fill
     QLinearGradient gradient(currentX, bottom, currentX, 0);
-    gradient.setColorAt(1.0, m_theme_colors->blue);
+    gradient.setColorAt(1.0, graphColors->blue);
     QColor gradientBase = m_bg_color;
     gradientBase.setAlpha(0);
     gradient.setColorAt(0, gradientBase);
     QBrush graBru(gradient);
 
-    QPen linePenBlue(m_theme_colors->blue, 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
-    QPen linePenRed(m_theme_colors->orange, 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
-    QPen linePenGreen(m_theme_colors->green, 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
+    QPen linePenBlue(graphColors->blue, 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
+    QPen linePenRed(graphColors->orange, 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
+    QPen linePenGreen(graphColors->green, 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
 
     // Draw gradient fill first (underneath everything)
     if (cbShowMemUsage->isChecked()) {
@@ -409,7 +400,9 @@ void MempoolStats::showEvent(QShowEvent *event)
 void MempoolStats::changeEvent(QEvent* e)
 {
     if (e->type() == QEvent::PaletteChange) {
-        updateThemeColors();
+        // Update background and text colors
+        m_bg_color = palette().color(backgroundRole());
+        m_text_color = palette().color(foregroundRole());
         drawChart();  // Redraw with new theme colors
     }
     QWidget::changeEvent(e);
@@ -430,21 +423,6 @@ void MempoolStats::objectClicked(QGraphicsItem *item)
         timeFilter = 0;
 
     drawChart();
-}
-
-void MempoolStats::updateThemeColors()
-{
-    // Detect dark mode for color palette selection
-    const QColor bg_colour = palette().color(backgroundRole());
-    const bool dark_mode = GUIUtil::isDarkMode(bg_colour);
-
-    // Store background color for gradient use
-    m_bg_color = bg_colour;
-
-    // Store text color for labels
-    m_text_color = palette().color(foregroundRole());
-
-    m_theme_colors = dark_mode ? &DARK_THEME_COLORS : &LIGHT_THEME_COLORS;
 }
 
 MempoolStats::~MempoolStats()

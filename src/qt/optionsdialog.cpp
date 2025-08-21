@@ -251,7 +251,7 @@ OptionsDialog::OptionsDialog(QWidget* parent, bool enableWallet)
     ui->threadsScriptVerif->setMinimum(-GetNumCores());
     ui->threadsScriptVerif->setMaximum(MAX_SCRIPTCHECK_THREADS);
     ui->pruneWarning->setVisible(false);
-    ui->pruneWarning->setStyleSheet("QLabel { color: red; }");
+    ui->pruneWarning->setProperty("messageType", "warning");
 
     ui->pruneSizeMiB->setEnabled(false);
 #if (QT_VERSION >= QT_VERSION_CHECK(6, 7, 0))
@@ -992,9 +992,9 @@ void OptionsDialog::checkLineEdit()
 {
     QLineEdit * const lineedit = qobject_cast<QLineEdit*>(QObject::sender());
     if (lineedit->hasAcceptableInput()) {
-        lineedit->setStyleSheet("");
+        lineedit->setProperty("hasError", false);
     } else {
-        lineedit->setStyleSheet("color: red;");
+        lineedit->setProperty("hasError", true);
     }
 }
 
@@ -1175,7 +1175,7 @@ void OptionsDialog::togglePruneWarning(bool enabled)
 
 void OptionsDialog::showRestartWarning(bool fPersistent)
 {
-    ui->statusLabel->setStyleSheet("QLabel { color: red; }");
+    ui->statusLabel->setProperty("messageType", "warning");
 
     if(fPersistent)
     {
@@ -1210,7 +1210,7 @@ void OptionsDialog::updateProxyValidationState()
     else
     {
         setOkButtonState(false);
-        ui->statusLabel->setStyleSheet("QLabel { color: red; }");
+        ui->statusLabel->setProperty("messageType", "warning");
         ui->statusLabel->setText(tr("The supplied proxy address is invalid."));
     }
 }
