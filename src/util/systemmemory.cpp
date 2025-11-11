@@ -29,6 +29,7 @@
 #include <exception>
 #include <fstream>
 #include <string>
+#include <thread>
 
 // Memory pressure threshold - initialized based on leveldb batch size
 // Default will be set by InitializeMemoryThreshold()
@@ -96,12 +97,6 @@ void CheckMemoryPressure()
     //          info.mem_used / (1024.0 * 1024.0),
     //          g_low_memory_threshold / (1024.0 * 1024.0),
     //          info.under_pressure ? "YES" : "NO");
-
-    if (info.under_pressure) {
-        LogPrintf("Mempressure detected - available: %.2f MB, threshold: %.2f MB\n",
-                  info.mem_available / (1024.0 * 1024.0),
-                  g_low_memory_threshold / (1024.0 * 1024.0));
-    }
 
     g_system_needs_memory_released.store(info.under_pressure, std::memory_order_relaxed);
 }
@@ -267,7 +262,7 @@ namespace {
             return info;
         }
 
-        size_t inactive_file = 0;
+        size_t anon = 0;
         std::ifstream stat_file("/sys/fs/cgroup/memory.stat");
         if (!stat_file.is_open()) {
             return info;
@@ -275,28 +270,17 @@ namespace {
 
         std::string stat_line;
         while (std::getline(stat_file, stat_line)) {
-            if (stat_line.compare(0, 14, "inactive_file ") == 0) {
-                auto value = ParseMemoryStat(stat_line.substr(14), "inactive_file");
+            if (stat_line.compare(0, 5, "anon ") == 0) {
+                auto value = ParseMemoryStat(stat_line.substr(5), "anon");
                 if (!value) return info;
-                inactive_file = *value;
+                anon = *value;
                 break;
             }
         }
 
-        size_t total = 0;
-        std::ifstream current_file("/sys/fs/cgroup/memory.current");
-        std::string current_str;
-        if (!current_file.is_open() || !std::getline(current_file, current_str)) {
-            return info;
-        }
-
-        auto value = ParseMemoryStat(current_str, "memory.current");
-        if (!value) return info;
-        total = *value;
-
         info.is_containerized = true;
-        info.mem_used = (total > inactive_file) ? (total - inactive_file) : 0;
-        info.mem_available = (info.mem_used < container_limit) ? (container_limit - info.mem_used) : 0;
+        info.mem_used = anon;
+        info.mem_available = (anon < container_limit) ? (container_limit - anon) : 0;
 
         // Linux pressure detection: low available memory threshold
         if (info.mem_available < g_low_memory_threshold) {

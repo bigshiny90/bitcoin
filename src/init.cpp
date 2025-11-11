@@ -1616,15 +1616,9 @@ bool AppInitMain(NodeContext& node, interfaces::BlockAndHeaderTipInfo* tip_info)
 
     // Check system memory pressure every 5 seconds.
     // If pressure detected, directly force flush to avoid OOM.
-    scheduler.scheduleEvery([&node]{
+    scheduler.scheduleEvery([]{
         CheckMemoryPressure();
-        if (!node.chainman) return;  // Safety check during startup/shutdown
-        if (SystemNeedsMemoryReleased()) {
-            LogDebug(BCLog::MEMPRESSURE, "Memory pressure detected by scheduler - forcing immediate flush\n");
-            ResetMemoryPressure();
-            node.chainman->ActiveChainstate().ForceFlushStateToDisk();
-        }
-    }, std::chrono::seconds{5});
+    }, std::chrono::seconds{1});
 
     if (args.GetBoolArg("-logratelimit", BCLog::DEFAULT_LOGRATELIMIT)) {
         LogInstance().SetRateLimiting(BCLog::LogRateLimiter::Create(

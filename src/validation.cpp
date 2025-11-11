@@ -3144,7 +3144,15 @@ bool Chainstate::FlushStateToDisk(
         // The cache is large and we're within 10% and 10 MiB of the limit, but we have time now (not in the middle of a block processing).
         bool fCacheLarge = mode == FlushStateMode::PERIODIC && cache_state >= CoinsCacheSizeState::LARGE;
         bool fCacheCritical = false;
-        if (mode == FlushStateMode::IF_NEEDED) {
+        if (SystemNeedsMemoryReleased()) {
+            // System is under memory pressure, we should write now.
+            fCacheCritical = true;
+            MemoryInfo mem_info = GetMemoryInfo();
+            LogWarning("Should flush due to mempressure - available: %.2f MB, threshold: %.2f MB\n",
+                        mem_info.mem_available / (1024.0 * 1024.0),
+                        g_low_memory_threshold / (1024.0 * 1024.0));
+        }
+        else if (mode == FlushStateMode::IF_NEEDED) {
             if (cache_state >= CoinsCacheSizeState::CRITICAL) {
                 // The cache is over the limit, we have to write now.
                 fCacheCritical = true;
@@ -3164,6 +3172,10 @@ bool Chainstate::FlushStateToDisk(
 
             // Pause memory pressure checks during the flush operation
             PauseMemoryPressureChecks();
+
+            // Flush the chainstate (which may refer to block index entries).
+            const auto empty_cache{(mode == FlushStateMode::ALWAYS) || fCacheLarge || fCacheCritical};
+            if (empty_cache) ResetMemoryPressure();
 
             // Start profiling memory usage during entire flush operation
             if (g_memory_profiler) {
@@ -3198,14 +3210,11 @@ bool Chainstate::FlushStateToDisk(
 
             if (!CoinsTip().GetBestBlock().IsNull()) {
 
-            // Flush the chainstate (which may refer to block index entries).
-            const auto empty_cache{(mode == FlushStateMode::ALWAYS) || fCacheLarge || fCacheCritical};
-
-            if (coins_mem_usage >= WARN_FLUSH_COINS_SIZE) {
-                LogWarning("%s: Flushing large (%.2f MiB) UTXO set to disk, it may take several minutes",
+            //if (coins_mem_usage >= WARN_FLUSH_COINS_SIZE) {
+                LogWarning("%s: Flushing (%.2f MiB) UTXO set to disk, it may take several minutes",
                            empty_cache ? "FLUSH" : "SYNC",
                            coins_mem_usage / (1024.0 * 1024.0));
-            }
+            //}
 
             LOG_TIME_MILLIS_WITH_CATEGORY(strprintf("write coins cache to disk (%d coins, %.2fKiB)",
                 coins_count, coins_mem_usage >> 10), BCLog::BENCH);
