@@ -1,0 +1,148 @@
+Ubuntu VM, 4GB System RAM
+
+dbcachesize=2000, dbbatchsize=64MB
+2025-11-12T23:54:41Z [warning] FLUSH: Flushing (2266.26 MiB) UTXO set to disk, it may take several minutes
+2025-11-12T23:59:09Z [mempressure] Flush profile: cache_size=2266 MB, overhead=263 MB, duration=271807 ms, pre_flush=2557 MB, peak=2820 MB, post_flush=2091 MB, sys_memavail=1298 MB
+2025-11-13T00:08:29Z [warning] FLUSH: Flushing (2266.98 MiB) UTXO set to disk, it may take several minutes
+2025-11-13T00:13:32Z [mempressure] Flush profile: cache_size=2266 MB, overhead=150 MB, duration=303591 ms, pre_flush=2508 MB, peak=2658 MB, post_flush=2443 MB, sys_memavail=976 MB
+2025-11-13T00:25:44Z [warning] FLUSH: Flushing (2266.12 MiB) UTXO set to disk, it may take several minutes
+2025-11-13T00:32:06Z [mempressure] Flush profile: cache_size=2266 MB, overhead=42 MB, duration=383212 ms, pre_flush=2320 MB, peak=2362 MB, post_flush=2175 MB, sys_memavail=1234 MB
+2025-11-13T00:49:55Z [warning] FLUSH: Flushing (2267.00 MiB) UTXO set to disk, it may take several minutes
+2025-11-13T00:54:37Z [mempressure] Flush profile: cache_size=2267 MB, overhead=58 MB, duration=283881 ms, pre_flush=2319 MB, peak=2377 MB, post_flush=2190 MB, sys_memavail=1157 MB
+2025-11-13T01:14:37Z [warning] FLUSH: Flushing (2266.32 MiB) UTXO set to disk, it may take several minutes
+2025-11-13T01:22:54Z [mempressure] Flush profile: cache_size=2266 MB, overhead=320 MB, duration=498603 ms, pre_flush=2034 MB, peak=2354 MB, post_flush=2167 MB, sys_memavail=1191 MB
+2025-11-13T01:55:49Z [warning] FLUSH: Flushing (2266.32 MiB) UTXO set to disk, it may take several minutes
+2025-11-13T02:04:01Z [mempressure] Flush profile: cache_size=2266 MB, overhead=378 MB, duration=494021 ms, pre_flush=1982 MB, peak=2360 MB, post_flush=2174 MB, sys_memavail=1238 MB
+
+dbcachesize=2000MB, dbbatchsize=128MB
+2025-11-13T02:30:32Z [warning] FLUSH: Flushing (2266.26 MiB) UTXO set to disk, it may take several minutes
+2025-11-13T02:31:13Z [mempressure] Flush profile: cache_size=2266 MB, overhead=603 MB, duration=46375 ms, pre_flush=2558 MB, peak=3161 MB, post_flush=2550 MB, sys_memavail=886 MB
+2025-11-13T02:42:23Z [warning] FLUSH: Flushing (2266.98 MiB) UTXO set to disk, it may take several minutes
+2025-11-13T02:43:05Z [mempressure] Flush profile: cache_size=2266 MB, overhead=373 MB, duration=43249 ms, pre_flush=2608 MB, peak=2981 MB, post_flush=2523 MB, sys_memavail=921 MB
+2025-11-13T02:56:24Z [warning] FLUSH: Flushing (2266.12 MiB) UTXO set to disk, it may take several minutes
+2025-11-13T02:57:34Z [mempressure] Flush profile: cache_size=2266 MB, overhead=339 MB, duration=70377 ms, pre_flush=2377 MB, peak=2716 MB, post_flush=2404 MB, sys_memavail=988 MB
+2025-11-13T03:17:54Z [warning] FLUSH: Flushing (2267.00 MiB) UTXO set to disk, it may take several minutes
+2025-11-13T03:20:07Z [mempressure] Flush profile: cache_size=2267 MB, overhead=285 MB, duration=134857 ms, pre_flush=2476 MB, peak=2761 MB, post_flush=2470 MB, sys_memavail=931 MB
+2025-11-13T03:45:34Z [warning] FLUSH: Flushing (2266.32 MiB) UTXO set to disk, it may take several minutes
+2025-11-13T03:50:12Z [mempressure] Flush profile: cache_size=2266 MB, overhead=534 MB, duration=279911 ms, pre_flush=2106 MB, peak=2640 MB, post_flush=2375 MB, sys_memavail=1057 MB
+2025-11-13T04:24:55Z [warning] FLUSH: Flushing (2266.32 MiB) UTXO set to disk, it may take several minutes
+2025-11-13T04:29:39Z [mempressure] Flush profile: cache_size=2266 MB, overhead=483 MB, duration=285900 ms, pre_flush=2107 MB, peak=2590 MB, post_flush=2406 MB, sys_memavail=942 MB
+2025-11-13T05:03:19Z [warning] FLUSH: Flushing (2266.30 MiB) UTXO set to disk, it may take several minutes
+2025-11-13T05:07:12Z [mempressure] Flush profile: cache_size=2266 MB, overhead=365 MB, duration=235331 ms, pre_flush=2368 MB, peak=2733 MB, post_flush=2412 MB, sys_memavail=933 MB
+2025-11-13T06:16:00Z [warning] SYNC: Flushing (2183.56 MiB) UTXO set to disk, it may take several minutes
+2025-11-13T06:18:12Z [mempressure] Flush profile: cache_size=2183 MB, overhead=524 MB, duration=133472 ms, pre_flush=2151 MB, peak=2675 MB, post_flush=2213 MB, sys_memavail=1224 MB
+2025-11-13T07:13:35Z [warning] SYNC: Flushing (2240.87 MiB) UTXO set to disk, it may take several minutes
+2025-11-13T07:15:08Z [mempressure] Flush profile: cache_size=2240 MB, overhead=542 MB, duration=93907 ms, pre_flush=2175 MB, peak=2717 MB, post_flush=2545 MB, sys_memavail=925 MB
+2025-11-13T07:58:46Z [warning] FLUSH: Flushing (2266.14 MiB) UTXO set to disk, it may take several minutes
+2025-11-13T08:00:44Z [mempressure] Flush profile: cache_size=2266 MB, overhead=411 MB, duration=119750 ms, pre_flush=2274 MB, peak=2685 MB, post_flush=2405 MB, sys_memavail=989 MB
+2025-11-13T08:45:24Z [warning] FLUSH: Flushing (2266.55 MiB) UTXO set to disk, it may take several minutes
+2025-11-13T08:49:19Z [mempressure] Flush profile: cache_size=2266 MB, overhead=489 MB, duration=237717 ms, pre_flush=2142 MB, peak=2631 MB, post_flush=2444 MB, sys_memavail=935 MB
+2025-11-13T09:52:49Z [warning] SYNC: Flushing (2118.72 MiB) UTXO set to disk, it may take several minutes
+2025-11-13T09:58:24Z [mempressure] Flush profile: cache_size=2118 MB, overhead=1021 MB, duration=339288 ms, pre_flush=1666 MB, peak=2687 MB, post_flush=2083 MB, sys_memavail=1371 MB
+2025-11-13T10:51:32Z [warning] SYNC: Flushing (2118.72 MiB) UTXO set to disk, it may take several minutes
+2025-11-13T10:53:24Z [mempressure] Flush profile: cache_size=2118 MB, overhead=1090 MB, duration=113162 ms, pre_flush=1439 MB, peak=2529 MB, post_flush=2387 MB, sys_memavail=1027 MB
+2025-11-13T11:53:52Z [warning] SYNC: Flushing (2118.73 MiB) UTXO set to disk, it may take several minutes
+2025-11-13T11:55:48Z [mempressure] Flush profile: cache_size=2118 MB, overhead=1251 MB, duration=117056 ms, pre_flush=1284 MB, peak=2535 MB, post_flush=2407 MB, sys_memavail=960 MB
+2025-11-13T12:57:08Z [warning] SYNC: Flushing (2118.74 MiB) UTXO set to disk, it may take several minutes
+2025-11-13T12:58:59Z [mempressure] Flush profile: cache_size=2118 MB, overhead=1397 MB, duration=111839 ms, pre_flush=1143 MB, peak=2540 MB, post_flush=2412 MB, sys_memavail=902 MB
+2025-11-13T14:03:40Z [warning] SYNC: Flushing (2118.74 MiB) UTXO set to disk, it may take several minutes
+
+dbcachesize=2000MB, dbbatchsize=128MB
+2025-11-13T15:14:49Z [warning] FLUSH: Flushing (2266.26 MiB) UTXO set to disk, it may take several minutes
+2025-11-13T15:15:39Z [mempressure] Flush profile: cache_size=2266 MB, overhead=602 MB, duration=54804 ms, pre_flush=2557 MB, peak=3159 MB, post_flush=2213 MB, sys_memavail=1187 MB
+2025-11-13T15:25:24Z [warning] FLUSH: Flushing (2266.98 MiB) UTXO set to disk, it may take several minutes
+2025-11-13T15:27:12Z [mempressure] Flush profile: cache_size=2266 MB, overhead=118 MB, duration=108620 ms, pre_flush=2735 MB, peak=2853 MB, post_flush=2500 MB, sys_memavail=850 MB
+2025-11-13T15:40:09Z [warning] FLUSH: Flushing (2266.12 MiB) UTXO set to disk, it may take several minutes
+2025-11-13T15:41:49Z [mempressure] Flush profile: cache_size=2266 MB, overhead=350 MB, duration=101134 ms, pre_flush=2351 MB, peak=2701 MB, post_flush=2392 MB, sys_memavail=971 MB
+2025-11-13T16:02:07Z [warning] FLUSH: Flushing (2267.00 MiB) UTXO set to disk, it may take several minutes
+2025-11-13T16:04:50Z [mempressure] Flush profile: cache_size=2267 MB, overhead=282 MB, duration=166088 ms, pre_flush=2466 MB, peak=2748 MB, post_flush=2450 MB, sys_memavail=962 MB
+2025-11-13T16:32:59Z [warning] FLUSH: Flushing (2266.32 MiB) UTXO set to disk, it may take several minutes
+2025-11-13T16:37:05Z [mempressure] Flush profile: cache_size=2266 MB, overhead=586 MB, duration=247715 ms, pre_flush=2178 MB, peak=2764 MB, post_flush=2501 MB, sys_memavail=887 MB
+2025-11-13T17:14:29Z [warning] FLUSH: Flushing (2266.32 MiB) UTXO set to disk, it may take several minutes
+2025-11-13T17:20:26Z [mempressure] Flush profile: cache_size=2266 MB, overhead=546 MB, duration=358992 ms, pre_flush=2070 MB, peak=2616 MB, post_flush=2431 MB, sys_memavail=961 MB
+2025-11-13T17:59:30Z [warning] FLUSH: Flushing (2266.30 MiB) UTXO set to disk, it may take several minutes
+2025-11-13T18:07:13Z [mempressure] Flush profile: cache_size=2266 MB, overhead=294 MB, duration=465978 ms, pre_flush=2402 MB, peak=2696 MB, post_flush=2366 MB, sys_memavail=1040 MB
+2025-11-13T19:03:20Z [warning] SYNC: Flushing (2117.04 MiB) UTXO set to disk, it may take several minutes
+2025-11-13T19:06:25Z [mempressure] Flush profile: cache_size=2117 MB, overhead=863 MB, duration=186526 ms, pre_flush=1764 MB, peak=2627 MB, post_flush=2148 MB, sys_memavail=1288 MB
+2025-11-13T19:52:47Z [warning] FLUSH: Flushing (2266.12 MiB) UTXO set to disk, it may take several minutes
+2025-11-13T19:55:01Z [mempressure] Flush profile: cache_size=2266 MB, overhead=386 MB, duration=135092 ms, pre_flush=2325 MB, peak=2711 MB, post_flush=2387 MB, sys_memavail=1027 MB
+2025-11-13T20:44:41Z [warning] FLUSH: Flushing (2266.31 MiB) UTXO set to disk, it may take several minutes
+2025-11-13T20:49:31Z [mempressure] Flush profile: cache_size=2266 MB, overhead=482 MB, duration=293525 ms, pre_flush=2140 MB, peak=2622 MB, post_flush=2441 MB, sys_memavail=867 MB
+2025-11-13T21:39:03Z [warning] FLUSH: Flushing (2266.26 MiB) UTXO set to disk, it may take several minutes
+2025-11-13T21:43:38Z [mempressure] Flush profile: cache_size=2266 MB, overhead=504 MB, duration=278642 ms, pre_flush=2168 MB, peak=2672 MB, post_flush=2486 MB, sys_memavail=845 MB
+2025-11-13T22:36:49Z [warning] SYNC: Flushing (1736.62 MiB) UTXO set to disk, it may take several minutes
+2025-11-13T22:39:00Z [mempressure] Flush profile: cache_size=1736 MB, overhead=1014 MB, duration=132797 ms, pre_flush=1233 MB, peak=2247 MB, post_flush=2107 MB, sys_memavail=1299 MB
+2025-11-13T23:44:25Z [warning] SYNC: Flushing (1902.67 MiB) UTXO set to disk, it may take several minutes
+2025-11-13T23:46:27Z [mempressure] Flush profile: cache_size=1902 MB, overhead=1067 MB, duration=122917 ms, pre_flush=1335 MB, peak=2402 MB, post_flush=2274 MB, sys_memavail=1119 MB
+2025-11-14T00:51:22Z [warning] SYNC: Flushing (1935.44 MiB) UTXO set to disk, it may take several minutes
+2025-11-14T00:53:06Z [mempressure] Flush profile: cache_size=1935 MB, overhead=972 MB, duration=106043 ms, pre_flush=1461 MB, peak=2433 MB, post_flush=2305 MB, sys_memavail=1128 MB
+2025-11-14T02:00:20Z [warning] SYNC: Flushing (1935.45 MiB) UTXO set to disk, it may take several minutes
+2025-11-14T02:02:11Z [mempressure] Flush profile: cache_size=1935 MB, overhead=913 MB, duration=112199 ms, pre_flush=1537 MB, peak=2450 MB, post_flush=2322 MB, sys_memavail=1116 MB
+2025-11-14T03:03:57Z [warning] SYNC: Flushing (2100.02 MiB) UTXO set to disk, it may take several minutes
+2025-11-14T03:05:17Z [mempressure] Flush profile: cache_size=2100 MB, overhead=602 MB, duration=81468 ms, pre_flush=2007 MB, peak=2609 MB, post_flush=2464 MB, sys_memavail=975 MB
+
+dbcachesize=1000MB, dbbatchsize=0MB
+2025-11-14T15:27:31Z [warning] FLUSH: Flushing (1266.47 MiB) UTXO set to disk, it may take several minutes
+2025-11-14T15:29:41Z [mempressure] Flush profile: cache_size=1266 MB, overhead=292 MB, duration=136078 ms, pre_flush=1555 MB, peak=1847 MB, post_flush=1311 MB, sys_memavail=2110 MB
+2025-11-14T15:37:06Z [warning] FLUSH: Flushing (1266.47 MiB) UTXO set to disk, it may take several minutes
+2025-11-14T15:39:58Z [mempressure] Flush profile: cache_size=1266 MB, overhead=14 MB, duration=172771 ms, pre_flush=1734 MB, peak=1748 MB, post_flush=1655 MB, sys_memavail=1752 MB
+2025-11-14T15:46:53Z [warning] FLUSH: Flushing (1266.48 MiB) UTXO set to disk, it may take several minutes
+2025-11-14T15:49:50Z [mempressure] Flush profile: cache_size=1266 MB, overhead=0 MB, duration=178503 ms, pre_flush=1749 MB, peak=1749 MB, post_flush=1657 MB, sys_memavail=1725 MB
+2025-11-14T15:54:07Z [warning] FLUSH: Flushing (1266.47 MiB) UTXO set to disk, it may take several minutes
+2025-11-14T15:57:20Z [mempressure] Flush profile: cache_size=1266 MB, overhead=13 MB, duration=194550 ms, pre_flush=1714 MB, peak=1727 MB, post_flush=1634 MB, sys_memavail=1799 MB
+2025-11-14T16:00:45Z [warning] FLUSH: Flushing (1266.85 MiB) UTXO set to disk, it may take several minutes
+2025-11-14T16:03:30Z [mempressure] Flush profile: cache_size=1266 MB, overhead=23 MB, duration=165496 ms, pre_flush=1462 MB, peak=1485 MB, post_flush=1393 MB, sys_memavail=1985 MB
+2025-11-14T16:06:03Z [warning] FLUSH: Flushing (1267.77 MiB) UTXO set to disk, it may take several minutes
+2025-11-14T16:09:21Z [mempressure] Flush profile: cache_size=1267 MB, overhead=2 MB, duration=198982 ms, pre_flush=1439 MB, peak=1441 MB, post_flush=1322 MB, sys_memavail=2043 MB
+2025-11-14T16:16:10Z [warning] FLUSH: Flushing (1266.85 MiB) UTXO set to disk, it may take several minutes
+2025-11-14T16:18:28Z [mempressure] Flush profile: cache_size=1266 MB, overhead=43 MB, duration=138825 ms, pre_flush=1352 MB, peak=1395 MB, post_flush=1292 MB, sys_memavail=2083 MB
+2025-11-14T16:27:07Z [warning] FLUSH: Flushing (1266.27 MiB) UTXO set to disk, it may take several minutes
+2025-11-14T16:29:27Z [mempressure] Flush profile: cache_size=1266 MB, overhead=32 MB, duration=140235 ms, pre_flush=1409 MB, peak=1441 MB, post_flush=1329 MB, sys_memavail=2063 MB
+2025-11-14T16:36:50Z [warning] FLUSH: Flushing (1266.19 MiB) UTXO set to disk, it may take several minutes
+2025-11-14T16:39:21Z [mempressure] Flush profile: cache_size=1266 MB, overhead=37 MB, duration=152727 ms, pre_flush=1361 MB, peak=1398 MB, post_flush=1291 MB, sys_memavail=2140 MB
+2025-11-14T16:46:25Z [warning] FLUSH: Flushing (1266.38 MiB) UTXO set to disk, it may take several minutes
+2025-11-14T16:49:02Z [mempressure] Flush profile: cache_size=1266 MB, overhead=27 MB, duration=158847 ms, pre_flush=1363 MB, peak=1390 MB, post_flush=1272 MB, sys_memavail=2170 MB
+2025-11-14T16:58:20Z [warning] FLUSH: Flushing (1266.10 MiB) UTXO set to disk, it may take several minutes
+2025-11-14T17:01:02Z [mempressure] Flush profile: cache_size=1266 MB, overhead=29 MB, duration=163761 ms, pre_flush=1344 MB, peak=1373 MB, post_flush=1281 MB, sys_memavail=2093 MB
+2025-11-14T17:09:02Z [warning] FLUSH: Flushing (1266.16 MiB) UTXO set to disk, it may take several minutes
+2025-11-14T17:11:39Z [mempressure] Flush profile: cache_size=1266 MB, overhead=36 MB, duration=158505 ms, pre_flush=1341 MB, peak=1377 MB, post_flush=1262 MB, sys_memavail=2172 MB
+2025-11-14T17:19:31Z [warning] FLUSH: Flushing (1266.27 MiB) UTXO set to disk, it may take several minutes
+2025-11-14T17:22:09Z [mempressure] Flush profile: cache_size=1266 MB, overhead=11 MB, duration=158242 ms, pre_flush=1346 MB, peak=1357 MB, post_flush=1265 MB, sys_memavail=2080 MB
+2025-11-14T17:33:18Z [warning] FLUSH: Flushing (1266.26 MiB) UTXO set to disk, it may take several minutes
+2025-11-14T17:35:50Z [mempressure] Flush profile: cache_size=1266 MB, overhead=23 MB, duration=153691 ms, pre_flush=1334 MB, peak=1357 MB, post_flush=1265 MB, sys_memavail=2159 MB
+2025-11-14T17:43:41Z [warning] FLUSH: Flushing (1266.25 MiB) UTXO set to disk, it may take several minutes
+2025-11-14T17:46:11Z [mempressure] Flush profile: cache_size=1266 MB, overhead=31 MB, duration=150060 ms, pre_flush=1332 MB, peak=1363 MB, post_flush=1259 MB, sys_memavail=2119 MB
+2025-11-14T17:56:16Z [warning] FLUSH: Flushing (1266.27 MiB) UTXO set to disk, it may take several minutes
+2025-11-14T17:58:45Z [mempressure] Flush profile: cache_size=1266 MB, overhead=36 MB, duration=150529 ms, pre_flush=1322 MB, peak=1358 MB, post_flush=1253 MB, sys_memavail=2167 MB
+2025-11-14T18:08:34Z [warning] FLUSH: Flushing (1266.27 MiB) UTXO set to disk, it may take several minutes
+2025-11-14T18:11:15Z [mempressure] Flush profile: cache_size=1266 MB, overhead=37 MB, duration=161888 ms, pre_flush=1321 MB, peak=1358 MB, post_flush=1252 MB, sys_memavail=2137 MB
+2025-11-14T18:22:15Z [warning] FLUSH: Flushing (1266.25 MiB) UTXO set to disk, it may take several minutes
+2025-11-14T18:24:54Z [mempressure] Flush profile: cache_size=1266 MB, overhead=31 MB, duration=159073 ms, pre_flush=1318 MB, peak=1349 MB, post_flush=1255 MB, sys_memavail=2137 MB
+2025-11-14T18:37:19Z [warning] FLUSH: Flushing (1266.28 MiB) UTXO set to disk, it may take several minutes
+2025-11-14T18:39:41Z [mempressure] Flush profile: cache_size=1266 MB, overhead=39 MB, duration=144067 ms, pre_flush=1304 MB, peak=1343 MB, post_flush=1251 MB, sys_memavail=2120 MB
+2025-11-14T18:53:52Z [warning] FLUSH: Flushing (1266.50 MiB) UTXO set to disk, it may take several minutes
+2025-11-14T18:56:11Z [mempressure] Flush profile: cache_size=1266 MB, overhead=29 MB, duration=141134 ms, pre_flush=1321 MB, peak=1350 MB, post_flush=1258 MB, sys_memavail=2092 MB
+2025-11-14T19:08:28Z [warning] FLUSH: Flushing (1266.28 MiB) UTXO set to disk, it may take several minutes
+2025-11-14T19:10:58Z [mempressure] Flush profile: cache_size=1266 MB, overhead=47 MB, duration=152168 ms, pre_flush=1325 MB, peak=1372 MB, post_flush=1280 MB, sys_memavail=2156 MB
+2025-11-14T19:23:02Z [warning] FLUSH: Flushing (1266.51 MiB) UTXO set to disk, it may take several minutes
+2025-11-14T19:25:34Z [mempressure] Flush profile: cache_size=1266 MB, overhead=41 MB, duration=153595 ms, pre_flush=1330 MB, peak=1371 MB, post_flush=1279 MB, sys_memavail=2145 MB
+2025-11-14T19:37:15Z [warning] FLUSH: Flushing (1266.27 MiB) UTXO set to disk, it may take several minutes
+2025-11-14T19:39:59Z [mempressure] Flush profile: cache_size=1266 MB, overhead=44 MB, duration=165199 ms, pre_flush=1332 MB, peak=1376 MB, post_flush=1280 MB, sys_memavail=2075 MB
+2025-11-14T19:51:35Z [warning] FLUSH: Flushing (1266.24 MiB) UTXO set to disk, it may take several minutes
+2025-11-14T19:54:39Z [mempressure] Flush profile: cache_size=1266 MB, overhead=28 MB, duration=186272 ms, pre_flush=1334 MB, peak=1362 MB, post_flush=1268 MB, sys_memavail=2151 MB
+2025-11-14T20:08:58Z [warning] FLUSH: Flushing (1266.49 MiB) UTXO set to disk, it may take several minutes
+2025-11-14T20:11:58Z [mempressure] Flush profile: cache_size=1266 MB, overhead=35 MB, duration=181577 ms, pre_flush=1319 MB, peak=1354 MB, post_flush=1262 MB, sys_memavail=2168 MB
+2025-11-14T20:42:35Z [warning] FLUSH: Flushing (1266.24 MiB) UTXO set to disk, it may take several minutes
+2025-11-14T20:46:09Z [mempressure] Flush profile: cache_size=1266 MB, overhead=138 MB, duration=215584 ms, pre_flush=1212 MB, peak=1350 MB, post_flush=1258 MB, sys_memavail=2130 MB
+2025-11-14T21:16:51Z [warning] FLUSH: Flushing (1266.25 MiB) UTXO set to disk, it may take several minutes
+2025-11-14T21:19:45Z [mempressure] Flush profile: cache_size=1266 MB, overhead=521 MB, duration=175674 ms, pre_flush=823 MB, peak=1344 MB, post_flush=1252 MB, sys_memavail=2124 MB
+2025-11-14T21:47:45Z [warning] FLUSH: Flushing (1266.24 MiB) UTXO set to disk, it may take several minutes
+2025-11-14T21:51:20Z [mempressure] Flush profile: cache_size=1266 MB, overhead=184 MB, duration=217152 ms, pre_flush=1169 MB, peak=1353 MB, post_flush=1261 MB, sys_memavail=2180 MB
+2025-11-14T22:12:05Z [warning] FLUSH: Flushing (1266.26 MiB) UTXO set to disk, it may take several minutes
+2025-11-14T22:15:57Z [mempressure] Flush profile: cache_size=1266 MB, overhead=74 MB, duration=233955 ms, pre_flush=1292 MB, peak=1366 MB, post_flush=1274 MB, sys_memavail=2107 MB
+2025-11-14T22:34:57Z [warning] FLUSH: Flushing (1266.26 MiB) UTXO set to disk, it may take several minutes
+2025-11-14T22:38:13Z [mempressure] Flush profile: cache_size=1266 MB, overhead=65 MB, duration=198140 ms, pre_flush=1346 MB, peak=1411 MB, post_flush=1319 MB, sys_memavail=2105 MB
+2025-11-14T22:55:33Z [warning] FLUSH: Flushing (1266.29 MiB) UTXO set to disk, it may take several minutes
+2025-11-14T22:58:50Z [mempressure] Flush profile: cache_size=1266 MB, overhead=46 MB, duration=199797 ms, pre_flush=1372 MB, peak=1418 MB, post_flush=1319 MB, sys_memavail=2031 MB
+2025-11-14T23:19:26Z [warning] FLUSH: Flushing (1266.34 MiB) UTXO set to disk, it may take several minutes
+2025-11-14T23:22:03Z [mempressure] Flush profile: cache_size=1266 MB, overhead=48 MB, duration=157893 ms, pre_flush=1399 MB, peak=1447 MB, post_flush=1349 MB, sys_memavail=2013 MB

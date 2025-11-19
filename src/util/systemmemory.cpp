@@ -59,12 +59,62 @@ namespace {
 
 void InitializeMemoryThreshold(size_t batch_size_bytes)
 {
+    // Get total system RAM to determine which formula to use
+    // We don't use this for pressure detection (that uses MemAvailable),
+    // but we need it to categorize low-memory vs high-memory systems
+    size_t total_ram_mb = 0;
+
+#ifdef __linux__
+    std::ifstream meminfo("/proc/meminfo");
+    if (meminfo.is_open()) {
+        std::string line;
+        while (std::getline(meminfo, line)) {
+            if (line.compare(0, 9, "MemTotal:") == 0) {
+                size_t pos = line.find_first_of("0123456789");
+                if (pos != std::string::npos) {
+                    try {
+                        uint64_t mem_total_kb = std::stoull(line.substr(pos));
+                        total_ram_mb = mem_total_kb / 1024;
+                    } catch (...) {}
+                }
+                break;
+            }
+        }
+    }
+#elif defined(WIN32)
+    MEMORYSTATUSEX statex;
+    statex.dwLength = sizeof(statex);
+    if (GlobalMemoryStatusEx(&statex)) {
+        total_ram_mb = statex.ullTotalPhys / (1024 * 1024);
+    }
+#elif defined(__APPLE__)
+    int mib[2] = {CTL_HW, HW_MEMSIZE};
+    uint64_t total_ram = 0;
+    size_t len = sizeof(total_ram);
+    if (sysctl(mib, 2, &total_ram, &len, nullptr, 0) == 0) {
+        total_ram_mb = total_ram / (1024 * 1024);
+    }
+#endif
+
     // Calculate memory pressure threshold based on leveldb batch size
-    // Formula uses moderate multiplier (2.9x) plus buffer (330 MB)
-    // Based on empirical testing across platforms (Windows/Linux/VM) and batch sizes (64/128/256 MB)
+    // Use different formulas for low-memory vs high-memory systems
+    // Low-memory systems (< 6GB) use more conservative thresholds
+    // Based on empirical testing: 1GB cache + 64MB batch has max 521MB overhead
     size_t batch_size_mb = batch_size_bytes / (1024 * 1024);
-    size_t overhead_mb = static_cast<size_t>(batch_size_mb * 2.9);
-    size_t threshold_mb = overhead_mb + 330;
+    size_t threshold_mb;
+
+    if (total_ram_mb > 0 && total_ram_mb < 6144) {  // < 6GB RAM
+        // Low-memory system: more conservative formula
+        // Formula: (batch * 4.5) + 400
+        // For 64MB: 688 MB threshold (covers observed 521 MB peak + margin)
+        threshold_mb = static_cast<size_t>(batch_size_mb * 4.5) + 400;
+    } else {
+        // High-memory system or unknown: current formula works well
+        // Formula: (batch * 2.9) + 330
+        // For 128MB: 701 MB, for 256MB: 1072 MB
+        threshold_mb = static_cast<size_t>(batch_size_mb * 2.9) + 330;
+    }
+
     g_low_memory_threshold = threshold_mb * 1024 * 1024;
 }
 

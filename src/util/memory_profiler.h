@@ -15,7 +15,6 @@
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
-#include <deque>
 #include <memory>
 #include <mutex>
 #include <thread>
@@ -56,9 +55,6 @@ public:
     // Stop profiling and return the profile
     std::unique_ptr<FlushProfile> StopFlushProfiling() EXCLUSIVE_LOCKS_REQUIRED(!m_mutex);
 
-    // Get historical flush profiles
-    std::vector<FlushProfile> GetRecentProfiles(size_t count = 10) const EXCLUSIVE_LOCKS_REQUIRED(!m_mutex);
-
 private:
     void ProfilerThread() NO_THREAD_SAFETY_ANALYSIS;
     MemorySample CaptureMemorySample(const std::string& phase) const NO_THREAD_SAFETY_ANALYSIS;
@@ -72,10 +68,6 @@ private:
     // Current profiling state
     std::atomic<bool> m_profiling{false};
     std::unique_ptr<FlushProfile> m_current_profile GUARDED_BY(m_mutex);
-
-    // Historical data
-    std::deque<FlushProfile> m_flush_history GUARDED_BY(m_mutex);
-    static constexpr size_t MAX_HISTORY_SIZE = 100;
 
     // Profiler thread
     std::unique_ptr<std::thread> m_profiler_thread;

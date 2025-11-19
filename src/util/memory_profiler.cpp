@@ -116,27 +116,7 @@ std::unique_ptr<MemoryProfiler::FlushProfile> MemoryProfiler::StopFlushProfiling
         m_current_profile->peak_memory_mb = std::max(m_current_profile->peak_memory_mb, sample.process_rss_mb);
     }
 
-    // Store in history
-    m_flush_history.push_back(*m_current_profile);
-    if (m_flush_history.size() > MAX_HISTORY_SIZE) {
-        m_flush_history.pop_front();
-    }
-
     return std::move(m_current_profile);
-}
-
-std::vector<MemoryProfiler::FlushProfile> MemoryProfiler::GetRecentProfiles(size_t count) const
-{
-    LOCK(m_mutex);
-
-    std::vector<FlushProfile> result;
-    size_t start_idx = m_flush_history.size() > count ? m_flush_history.size() - count : 0;
-
-    for (size_t i = start_idx; i < m_flush_history.size(); ++i) {
-        result.push_back(m_flush_history[i]);
-    }
-
-    return result;
 }
 
 void MemoryProfiler::ProfilerThread()
